@@ -1,0 +1,14 @@
+
+VAL:
+  BATCH_SIZE: 4
+  CROP_SIZE: 448  # >= image_size means infer at a time without patching
+  OVERLAP_SIZE: 128
+  NUM_WORKERS: 4
+
+
+OTHER_ARGS:
+  MAX_KEYPOINT: 250  # max number of keypoints
+  RADIUS: 3  # radius in gt generator
+  NMS_POOLSIZE: 23  # maxpool size in pseudo nms in decoder
+  LOC_THRESHOLD: 0.35  # threshold for determining valid location
+  DIR_THRESHOLD: 0.35  # threshold for determining valid direction
