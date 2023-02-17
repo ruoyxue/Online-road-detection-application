@@ -2,10 +2,22 @@
 	<div id="map-viewer"></div>
 	<div id="geocoder-box"></div>
 
-    <el-progress type="circle" :percentage="$store.state.detectionInfo.progress" 
-            :stroke-width="14" :width="160" :color="progressBarColors" id="progress-bar">
-        <span id="percentage-label">{{ $store.state.detectionInfo.step }}</span>
-    </el-progress>
+	<!-- step bar -->
+	<el-steps :active="$store.state.detectionInfo.step" finish-status="success" process-status="finish" 
+			direction="vertical" class="step-bar">
+		<el-step title="Select Region" />
+		<el-step :title="downloadString" />
+		<el-step :title="detectionString" />
+		<el-step title="Show Results" />
+	</el-steps>
+
+	<!-- LatLng Card -->
+	<el-card id="latlon-info">
+		<template #header>
+			Longitude Latitude
+		</template>
+		{{ latlon }}
+	</el-card>
 </template>
 
 <script setup>
@@ -49,12 +61,11 @@ function init() {
 		minZoom: 0,
     });
     window.matchMedia('(prefers-reduced-motion: no-preference)');
-	
-    // add geocoder
+	// add geocoder
 	geocoder = new MapboxGeocoder({ 
 		accessToken: mapboxgl.accessToken,
 		localGeocoder: coordinatesGeocoder,
-		language: 'en',
+		language: 'zh-Hans',
         placeholder: 'Location or Lng,Lat',
 		flyTo: {
 			bearing: 1,
@@ -76,18 +87,28 @@ function init() {
 	map.on('draw.create', function (e) {});
 
 	// language
-	// mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js');
+	// map.addControl(new MapboxLanguage({ defaultLanguage: 'zh-Hans' }));
+	mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js');
 	map.addControl(new MapboxLanguage({ defaultLanguage: 'en' }));
+	
+	map.on('mousemove', (e) => {
+    	latlon.value = `( ${e.lngLat.lng.toFixed(4)}, ${e.lngLat.lat.toFixed(4)} )` 
+	})
 
-    // navigation control
     map.addControl(new mapboxgl.NavigationControl({
             visualizePitch: true,
             showCompass: true,
             showZoom: false
         }), 'top-right')
 
+    var scale = new mapboxgl.ScaleControl({
+			maxWidth: 150,
+			unit: 'metric'
+		});
+	map.addControl(scale, "bottom-right");
 	store.commit('SET_Map', map)
 	store.commit('SET_Draw', draw)
+   
 }
 
 const coordinatesGeocoder = function (query) {
@@ -135,14 +156,25 @@ const coordinatesGeocoder = function (query) {
 	return geocodes;
 };
 
-// progress bar
-const progressBarColors = [
-    { color: '#f56c6c', percentage: 20 },
-    { color: '#e6a23c', percentage: 40 },
-    { color: '#5cb87a', percentage: 60 },
-    { color: '#6f7ad3', percentage: 80 },
-    { color: '#1989fa', percentage: 100 },
-]
+// step bar
+let downloadString = computed(() => {
+	let progress = store.state.detectionInfo.downloadCount / store.state.detectionInfo.sum
+	let progressString = ''
+	if (progress > 0 && progress < 1) {
+		progressString = (progress * 100).toFixed(2) + '%'
+	}
+	return 'Download Images ' + progressString
+})
+
+let detectionString = computed(() => {
+	let progress = store.state.detectionInfo.detectionProgress
+	let progressString = ''
+	if (progress > 0 && progress < 1) {
+		progressString = (progress * 100).toFixed(2) + '%'
+	}
+	return 'Road Detection ' + progressString
+})
+
 
 </script>
 
@@ -166,16 +198,14 @@ const progressBarColors = [
 	@apply absolute flex justify-start;
 }
 
-#progress-bar {
-    left: 40px;
-    bottom: 3%;
-    position: absolute;
-    pointer-events: none;
-}
-
-#percentage-label {
-    font-weight: 900;
-    @apply text-light-900 text-2xl;
+.step-bar {
+	position: absolute;
+	left: 40px;
+	width: 25%;
+	height: 50%;
+	top: 25%;
+	z-index: 10;
+	pointer-events: none;
 }
 
 #latlon-info {
@@ -220,6 +250,25 @@ const progressBarColors = [
 
 :deep(.mapboxgl-ctrl-geocoder) {
 	min-width: 100%;
+}
+
+:deep(.el-step__title) {
+	font-size: 20px;
+	font-weight: bold;
+	@apply px-3 pt-1;
+}
+
+:deep(.el-step__icon) {
+	height: 32px;
+	width: 32px;
+	font-size: 20px;
+}
+
+:deep(.el-step.is-vertical .el-step__line) {
+	width: 5px;
+	left: 14px;
+	top: 3px;
+	bottom: -3px;
 }
 
 :deep(.mapboxgl-ctrl-logo) {

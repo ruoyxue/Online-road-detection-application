@@ -70,18 +70,17 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
-import { useStore } from 'vuex';
+import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 import { useFullscreen } from '@vueuse/core'
 import { ref, reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { removeLayer, previewGrid } from '~/composables/previewGrid'
+import { removeLayer, removeSource, previewGrid } from '~/composables/previewGrid'
 import ResultDrawer from '~/pages/components/ResultDrawer.vue'
 import SettingDrawer from '~/pages/components/SettingDrawer.vue'
-import { saveBasicInfo, DownloadImage, spliceImageTiles, 
-	RoadDetection, drawOnMap } from '~/composables/interact';
-
-
+import { DownloadImage, spliceImageTiles, StartDetection, drawOnMap } from '~/composables/interact'
+import { GET_Progress } from '~/api/manager'
+import { getCurrentTime } from '~/composables/util'
 
 const router = useRouter()
 const store = useStore()
@@ -101,15 +100,13 @@ const settingBtn = () => settingDrawerRef.value.reverseSettingDrawer()
 // select region btn
 const selectRegionBtn = () => {
 	removeLayer("grid-preview")
+    removeSource("grid-preview")
+    
 	store.state.draw.deleteAll()
 	store.state.draw.changeMode('draw_rectangle')
 	ElMessage({message: 'Click twice to make a rectangle', showClose: true})
-	store.commit('SET_DetectionInfo', {
-		step: 0,
-		sum: 0,
-		downloadCount: 0,
-		detectionCount: 0,
-	})
+    store.commit('SET_Step', 'Download')
+	store.commit('SET_Progress', 0)
 }
 
 // clear region btn
@@ -118,13 +115,11 @@ const clearRegionBtn = () => {
 		ElMessage({ message: 'Please select a region first', type: 'warning', showClose: true})
 	}
 	removeLayer("grid-preview")
+    removeSource("grid-preview")
+
 	store.state.draw.deleteAll()
-	store.commit('SET_DetectionInfo', {
-		step: -1,
-		sum: 0,
-		downloadCount: 0,
-		detectionCount: 0,
-	})
+	store.commit('SET_Step', 'Download')
+	store.commit('SET_Progress', 0)
 }
 
 // preview grids btn
@@ -147,42 +142,42 @@ const previewGridBtn = () => {
 
 // start stop btn
 let isStart = ref(true)
-const startBtn = () => {
+const startBtn = async () => {
+    store.commit('SET_PermitFlag', true)
 	if (store.state.draw.getAll().features.length === 0) {
 		ElMessage({ message: 'Please select a region first', type: 'warning', showClose: true})
 		return
 	}
 	
 	isStart.value = !isStart.value
-	saveBasicInfo()
+    await DownloadImage()
+    await spliceImageTiles()
+    await StartDetection()
+    await new Promise(resolve => {
+        let interval = setInterval(
+            async () => {
+                let res = await GET_Progress()
+                store.commit('SET_Progress', res.data * 100)
+                if (res.data === 1) {
+                    clearInterval(interval)
+                    resolve()
+                }
+            }, 250
+        )
+    })
+    
+    // TODO: need to cancel Promise chain on click of stop button
 
-	let p = DownloadImage()  // return a promise of Promise.all()
-	
-	p.then(() => {
-		return spliceImageTiles()  //return a promise of axios.post, which will resolve when receive correct code
-	}).then(() => {
-		return RoadDetection()
-	}).then(() => {
-		drawOnMap()
-	}).catch(err => {
-		ElMessage({
-			message: err,
-			type: 'error',
-			showClose: true
-		})
-		console.log(err)
-	}).finally(() => {
-		isStart.value = !isStart.value
-	})	
+    drawOnMap()
+    isStart.value = !isStart.value
 }
 
+
 const stopBtn = () => {
+    store.commit('SET_PermitFlag', false)
 	isStart.value = !isStart.value
-	store.commit('SET_DetectionInfo', {
-		step: -1,
-		downloadProgress: 0,
-		detectionProgress: 0
-	})
+    store.commit('SET_Step', 'Download')
+	store.commit('SET_Progress', 0)
 	removeLayer("grid-preview")
 	store.state.draw.deleteAll()
 }
