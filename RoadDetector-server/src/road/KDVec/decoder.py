@@ -69,13 +69,12 @@ class Decoder:
         """
         assert location.shape[:2] == direction.shape[:2]
         locations = location.float()
-        directions = copy.deepcopy(direction)
         batch_size, max_keypoint = location.shape[:2]
 
         adjacency_matrix = torch.zeros(batch_size, max_keypoint, max_keypoint)
         for batch in range(batch_size):
             adjacency_matrix[batch, :, :] = VectorizationDecoder.calculate_adjacency_matrix_greedy(
-                location=locations[batch], direction=directions[batch],
+                location=locations[batch], direction=direction[batch],
                 lambda_angle_dist=lambda_angle_dist, lambda_point_line_dist=lambda_point_line_dist,
                 dir_offset_range=dir_offset_range, point_line_distance_range=point_line_distance_range,
                 loc_range=loc_range, max_pending_distance=max_pending_distance,

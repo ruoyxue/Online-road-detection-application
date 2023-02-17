@@ -50,3 +50,5 @@ scipy
 pyyaml
 scikit-image
 rtree
+aiohttp
+uvloop

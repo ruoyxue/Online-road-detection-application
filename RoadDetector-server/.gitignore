@@ -3,5 +3,5 @@ project-env
 *.pyc
 __pycache__
 .vscode
-src/road/trained_model
-src/save_dir
+src/road/trained_model/*.pt
+src/road/save_dir

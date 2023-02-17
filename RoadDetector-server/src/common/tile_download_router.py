@@ -6,9 +6,11 @@ import urllib.request
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from starlette import status
+import aiohttp
+import cv2
+
 
 tile_download_router = APIRouter()
-
 
 class TileDownloadInfo(BaseModel):
     """ Request body for tile download """
@@ -57,6 +59,11 @@ def download_tile(tile_download_info: TileDownloadInfo):
     socket.setdefaulttimeout(tile_download_info.time_out)
     save_path = os.path.join(tile_download_info.save_dir, tile_download_info.save_tile_name)
     auto_down(url=url, save_path=save_path)
+    # async with aiohttp.ClientSession() as session:
+    #     async with session.get(url) as img:
+    #         content = await img.read()
+    #         with open(save_path, 'wb') as f:
+    #             f.write(content)
     return
 
 

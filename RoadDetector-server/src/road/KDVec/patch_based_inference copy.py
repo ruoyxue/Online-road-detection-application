@@ -14,10 +14,12 @@ from .decoder import Decoder, KeyPointDecoder
 from scipy.spatial import cKDTree
 import math
 import random
+import asyncio
+from .globe_vars import globe_vars
 
 
 @torch.no_grad()
-def patch_inference(data, model, config):
+def patch_inference(progress, data, model, config):
     crop_size = config["VAL"]["CROP_SIZE"]
     overlap_size = config["VAL"]["OVERLAP_SIZE"]
     assert overlap_size % 2 == 0
@@ -25,11 +27,7 @@ def patch_inference(data, model, config):
 
     batch_size, _, height, width = data.shape
 
-    if config['TRAIN']['LOSS']['CRITERION_LOC'] in ["weighted_bceloss", "weighted_modifiedfocalloss"] or \
-            config['TRAIN']['LOSS']['CRITERION_DIR_PROB'] in ["weighted_bceloss", "weighted_modifiedfocalloss"]:
-        use_sigmoid = True
-    else:
-        use_sigmoid = False
+    use_sigmoid = True
 
     # patch image and stitch
     whole_graph_list = [nx.Graph() for _ in range(batch_size)]  # record whole image graphs
@@ -43,6 +41,7 @@ def patch_inference(data, model, config):
     x_list = list(range(0, width - crop_size, crop_size - overlap_size)) + [width - crop_size]
     y_list = list(range(0, height - crop_size, crop_size - overlap_size)) + [height - crop_size]
     left_upper_coord_list = [(x, y) for y in y_list for x in x_list]
+    patch_sum = len(left_upper_coord_list)
     patch_max_keypoint = config["OTHER_ARGS"]["MAX_KEYPOINT"]
     whole_locations = torch.full((batch_size, patch_max_keypoint * len(left_upper_coord_list), 2), -1.)
     whole_directions = torch.full((batch_size, patch_max_keypoint * len(left_upper_coord_list), 6, 3), 0.)
@@ -69,12 +68,7 @@ def patch_inference(data, model, config):
         ############################################################
         # Step 2: link keypoints in small patch
         ############################################################
-        # Step 2.1: small patch keypoint decode
-        # dir_prob_feat = dir_feat_patch[:, [0, 3, 6, 9, 12, 15], :, :]
-        # dir_prob_feat, _ = torch.max(dir_prob_feat, dim=1)
-        # dir_prob_feat = dir_prob_feat.unsqueeze(1)
-        # loc_feat_patch += dir_prob_feat
-        
+        # # Step 2.1: small patch keypoint decode       
         if use_sigmoid:
             # reduce keypoint features around the edge
             loc_feat_patch = torch.sigmoid(loc_feat_patch)
@@ -101,7 +95,7 @@ def patch_inference(data, model, config):
         patch_locations[:, :, 1] = patch_ys
         copy_patch_locations[:, :, 0] = patch_xs + x
         copy_patch_locations[:, :, 1] = patch_ys + y
-        
+    
         patch_directions = KeyPointDecoder.gather_feature(dir_feat_patch, ind, use_transform=True)
         patch_directions = patch_directions.reshape(batch_size, config["OTHER_ARGS"]["MAX_KEYPOINT"], 6, 3)
         # normalise direction vector
@@ -166,6 +160,8 @@ def patch_inference(data, model, config):
             whole_patch_intersection_list.append((right_upper, right_lower))  # save right line
 
         patch_count += 1
+        progress.value = patch_count / patch_sum
+        print(progress.value)
 
     ######################################################################################
     # Step 3: simplify graph
@@ -192,8 +188,7 @@ def patch_inference(data, model, config):
         # remove small segments
         whole_graph_list[batch] = remove_small_segments(whole_graph_list[batch], remove_length=150)
 
-    whole_centerline_list = get_centerline(whole_graph_list, (height, width))
-    return whole_centerline_list, whole_graph_list, whole_locations, whole_directions
+    return whole_graph_list
 
 
 def pseudo_nms(fmap, pool_size=3):
