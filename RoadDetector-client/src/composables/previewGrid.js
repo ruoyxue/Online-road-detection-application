@@ -106,6 +106,7 @@ export function previewGrid(max_grid){
 		}
 		
 		removeLayer("grid-preview")
+        removeSource("grid-preview")
 		var pointsCollection = []
 	
 		for(var i in grid) {
@@ -131,14 +132,18 @@ export function previewGrid(max_grid){
 		return grid.length
 	}
 	return -1  // grid-preview layer not exists
-	
 }
 
-export function removeLayer(id) {
-	if(store.state.map.getSource(id) != null) {
-		store.state.map.removeLayer(id)
-		store.state.map.removeSource(id)
-	}
+export function removeLayer(layerId) {
+    if (store.state.map.getLayer(layerId) !== undefined) {
+        store.state.map.removeLayer(layerId)
+    }
+}
+
+export function removeSource(sourceId) {
+    if (store.state.map.getSource(sourceId) !== undefined) {
+        store.state.map.removeSource(sourceId)
+    }
 }
 
 export function previewRect(rectInfo) {

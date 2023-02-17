@@ -84,6 +84,12 @@
 			</span>
 			<el-divider />
 
+            <span class="single-drawer-item">
+				GPU Number
+				<el-input-number v-model="gpuNumber" :min="0" :max="7" @change="changeGPUNumber" class="select"/>
+			</span>
+			<el-divider />
+
 			<span class="single-drawer-item">
 				Detection Model
 				<el-select v-model="detectionModel" class="select" size="default" @change="changeDetectionModel">
@@ -92,25 +98,6 @@
 					<el-option key="KDVec" value="KDVec"/>
 				</el-select>
 			</span>
-			<el-divider />
-
-			<span class="single-drawer-item">
-				Save Types
-				<span class="type_checkbox">
-					<el-checkbox-group v-model="saveTypes" @change="changeSaveTypes">
-						<el-checkbox-button key="Image" label="Image">Image</el-checkbox-button>
-						<el-checkbox-button key="GeoJson" label="GeoJson">GeoJson</el-checkbox-button>
-						<el-checkbox-button key="Visulisation" label="Visulisation">Visulisation</el-checkbox-button>
-					</el-checkbox-group>
-				</span>
-			</span>
-			<el-divider />
-
-			<div class="single-drawer-item">
-				Save Path
-				<el-input v-model="savePath" placeholder="Please input the save directory"
-						@blur="changeSavePath" class="select" style="width: 58%;"/>
-			</div>
 			<el-divider />
 		</el-collapse-item>
 	</el-collapse>
@@ -126,7 +113,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useStore } from 'vuex';
-import { previewGrid, removeLayer } from '~/composables/previewGrid'
+import { previewGrid, removeLayer, removeSource } from '~/composables/previewGrid'
 import { ElMessage } from 'element-plus'
 
 const store = useStore()
@@ -226,22 +213,16 @@ const changeZoom = (value) => {
 	}
 }
 
+// change gpu
+const gpuNumber = ref(4)
+const changeGPUNumber = (value) => {
+	store.commit('SET_GPU', value)
+}
+
 // change detection model
 const detectionModel = ref('KDVec')
 const changeDetectionModel = (value) => {
 	store.commit('SET_DetectionModel', value)
-}
-
-// change save types
-const saveTypes = ref(['GeoJson'])
-const changeSaveTypes = (value) => {
-	store.commit('SET_SaveTypes', value)
-}
-
-// change save path
-const savePath = ref('')
-const changeSavePath = () => {
-	store.commit('SET_SavePath', savePath.value)
 }
 
 // reset settings to defaults
@@ -258,13 +239,12 @@ const resetDefaults = () => {
 	store.commit('SET_MaxGrids', 50000)
 	zoom.value = 17
 	store.commit('SET_Zoom', 17)
+    gpuNumber.value = 4
+    store.commit('SET_GPU', 4)
 	removeLayer("grid-preview")
+    removeSource("grid-preview")
 	detectionModel.value = 'KDVec'
 	store.commit('SET_DetectionModel', 'KDVec')
-	saveTypes.value = ['GeoJson']
-	store.commit('SET_SaveTypes', ['GeoJson'])
-	savePath.value = ''
-	store.commit('SET_SavePath', '')
 }
 
 defineExpose({

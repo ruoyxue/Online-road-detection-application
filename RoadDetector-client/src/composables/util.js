@@ -49,7 +49,7 @@ export function getCurrentTime() {
 	let timeString = (hour<10?'0'+hour:hour)+': '+(minute<10?'0'+minute:minute)+': '+(second<10?'0'+second:second)
 	let timeStamp = new Date(timeString_all).getTime()
 	return {
-		timeString: timeString,
+		timeString: timeString_all,
 		timeStamp: timeStamp
 	}
 }
@@ -68,4 +68,9 @@ export const getSourceURL = (value) => {
 	else {
 		throw new Error('Invalid source name')
 	}
+}
+
+// delete element by index in array and return new array
+export function deleteEleByIndex(array, index) {
+    return array.slice(0, index).concat(array.slice(index + 1))
 }

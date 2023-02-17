@@ -1,5 +1,7 @@
 import axios from "~/axios.js";
 import Qs from 'qs'
+import store from '~/store'
+
 
 // Send download request
 export function POST_DownloadTiles(info) {
@@ -31,16 +33,47 @@ export function POST_DeployModel(info) {
 	return axios.post(
 		'/road/deploy_model', {
 			model_name: info.model_name,
-			save_types: info.save_types,
-			image_path: info.image_path,
 			gpu: info.gpu,
 		}
 	)
 }
 
-// road detect
-export function POST_RoadDetect() {
+// start detect
+export function POST_StartDetect(info) {
 	return axios.post(
-		'/road/road_detect'
+        '/road/start_detect', {
+            image_path: info.image_path,
+            northwest_lnglat: info.northwest_lnglat,
+            southeast_lnglat: info.southeast_lnglat,
+        }
+    )
+}
+
+// get progress on server
+export function GET_Progress() {
+    return axios.get('/road/get_progress')
+}
+
+// show graph
+export function GET_RoadGraph() {
+	return axios.get('/road/show_graph')
+}
+
+// delete layer
+export function DELETE_Layer(save_name) {
+    return axios.put(
+		'/road/delete_layer', {
+            save_dir: save_name
+        }
 	)
+}
+
+// rename save directory name of the layer
+export function PUT_RenameLayer(info) {
+    return axios.put(
+        '/road/rename_layer', {
+            old_name: info.old_name,
+            new_name: info.new_name,
+        }
+    )
 }
