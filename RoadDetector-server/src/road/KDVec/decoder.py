@@ -1,9 +1,7 @@
 import torch
 import torch.nn.functional as F
-import copy
 import numpy as np
 import math
-
 
 
 class Decoder:

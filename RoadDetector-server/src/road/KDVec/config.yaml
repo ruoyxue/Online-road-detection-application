@@ -1,4 +1,3 @@
-
 VAL:
   BATCH_SIZE: 4
   CROP_SIZE: 448  # >= image_size means infer at a time without patching

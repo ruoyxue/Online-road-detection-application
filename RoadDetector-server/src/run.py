@@ -1,14 +1,11 @@
 """
- @Author: Ruoyao
- @Email: ruoyao.xue@whu.edu.cn
+ @Author: ruoyxue
+ @Email: xueruoyao123@gmail.com
  @DateTime: 2022.12.20
  @SoftWare: Road Detector
  @License: GPLv2, see License for full text
 """
-import os
-
 import uvicorn
-import multiprocessing
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware

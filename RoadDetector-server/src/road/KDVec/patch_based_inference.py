@@ -9,17 +9,13 @@ from crdp import rdp
 from scipy.optimize import linear_sum_assignment
 from skimage import draw
 from sympy import Point
-import rtree
 from .decoder import Decoder, KeyPointDecoder
 from scipy.spatial import cKDTree
-import math
-import random
-import asyncio
-from .globe_vars import globe_vars
+from .globe_vars import progress
 
 
 @torch.no_grad()
-def patch_inference(progress, data, model, config):
+def patch_inference(data, model, config):
     crop_size = config["VAL"]["CROP_SIZE"]
     overlap_size = config["VAL"]["OVERLAP_SIZE"]
     assert overlap_size % 2 == 0
@@ -160,8 +156,7 @@ def patch_inference(progress, data, model, config):
             whole_patch_intersection_list.append((right_upper, right_lower))  # save right line
 
         patch_count += 1
-        progress.value = patch_count / patch_sum
-        print(progress.value)
+        progress.set_value((patch_count / patch_sum) * 0.95)        
 
     ######################################################################################
     # Step 3: simplify graph

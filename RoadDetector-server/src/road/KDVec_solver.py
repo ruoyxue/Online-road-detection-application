@@ -9,7 +9,6 @@ from concurrent.futures import ThreadPoolExecutor
 
 from .KDVec.model.KDVec import KDVec
 from .KDVec.patch_based_inference import patch_inference
-from .aug_cfg import test_aug
 from .KDVec.globe_vars import progress
 
 
@@ -49,7 +48,7 @@ def inference_KDVec(image_path, northwest_lnglat, southeast_lnglat):
     mean = (89.12, 95.82, 93.76)
     std = (46.42, 46.20, 50.23)
     data = normalise(data, mean, std).unsqueeze(0).to(device)
-    pred_graphs =  patch_inference(data, model, config)
+    pred_graphs = patch_inference(data, model, config)
     
     # road vis
     image = cv2.imread(os.path.join(image_path, os.listdir(image_path)[0]))
