@@ -6,9 +6,9 @@ Server: Python Fastapi
 
 Client: vue3 + vite
 
-<video id="video" controls="" preload="none" poster="">
-    <source id="mp4" src="./example.mp4" type="video/mp4">
-</video>
+<p align="center">
+  <img src="./example.gif">
+</p>
 
 ## 1 Server
 
