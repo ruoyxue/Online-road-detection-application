@@ -37,8 +37,7 @@ python run.py
 
 ### 1.3 Download pretrained model
 
-BaiduNetDisk: https://pan.baidu.com/s/1a8FyYPiqgqcnOShszeCLpw
-Code: f1gd
+The trained model will be released soon...
 
 ## 2 Client
 
