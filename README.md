@@ -1,10 +1,10 @@
-# RoadDetectionApp
+# Online Road Detection Application
 
-This is a web application to perform real-time road detection task worldwide.
+This is a web application to conduct online road detection task worldwide.
 
-Server: Python Fastapi
+Server: **Python Fastapi**
 
-Client: vue3 + vite
+Client: **vue3 + vite**
 
 <p align="center">
   <img src="./example.gif">
@@ -35,10 +35,6 @@ cd src
 python run.py
 ````
 
-### 1.3 Download pretrained model
-
-The trained model will be released soon...
-
 ## 2 Client
 
 ### 2.1 Prepare environment
@@ -53,5 +49,3 @@ npm install
 ```apache
 npm run dev
 ```
-
-> Reference: https://github.com/AliFlux/MapTilesDownloader
